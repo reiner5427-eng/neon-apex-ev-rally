@@ -17,7 +17,7 @@ function surface(g,vertices,material){const geometry=new THREE.BufferGeometry();
 function line(g,points,color=0x26303a,width=.012){const curve=new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p)));return mesh(g,new THREE.TubeGeometry(curve,Math.max(3,points.length*3),width,4,false),mat(color,{roughness:.6,metalness:.12,clearcoat:0}));}
 // Longitudinal rings form curved bodywork instead of an extruded flat silhouette.
 function loft(g,sections,material,angular=false){const verts=[],idx=[],ring=angular?8:16;
- for(const s of sections){const [z,width,bottom,top]=s;for(let i=0;i<ring;i++){const theta=2*Math.PI*i/ring,sn=Math.sin(theta),cs=Math.cos(theta),power=angular?.27:.56;const x=Math.sign(sn)*Math.pow(Math.abs(sn),power)*width/2,y=(bottom+top)/2+Math.sign(cs)*Math.pow(Math.abs(cs),power)*(top-bottom)/2;verts.push(x,y,z);}}
+ for(const s of sections){const [z,width,bottom,top]=s;for(let i=0;i<ring;i++){const theta=2*Math.PI*i/ring,sn=Math.sin(theta),cs=Math.cos(theta),power=angular?.20:.30;const x=Math.sign(sn)*Math.pow(Math.abs(sn),power)*width/2,y=(bottom+top)/2+Math.sign(cs)*Math.pow(Math.abs(cs),power)*(top-bottom)/2;verts.push(x,y,z);}}
  for(let s=0;s<sections.length-1;s++)for(let i=0;i<ring;i++){const a=s*ring+i,b=s*ring+(i+1)%ring,c=a+ring,d=b+ring;idx.push(a,c,b,b,c,d);}
  for(let i=1;i<ring-1;i++){idx.push(0,i,i+1);const base=(sections.length-1)*ring;idx.push(base,base+i+1,base+i);}
  const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(verts,3));geo.setIndex(idx);geo.computeVertexNormals();return mesh(g,geo,material);
@@ -48,7 +48,6 @@ export function carModel(id){const v=VEHICLES.find(v=>v.id===id)||VEHICLES[0],s=
   line(g,[[side*(W/2+.01),.49,pillarZ],[side*(W/2+.022),s.belt-.08,pillarZ]],0x30434b,.009);
   for(const z of [-.92,.74])box(g,.035,.046,.27,side*(W/2+.019),s.belt-.15,z,id==='cybertruck'?dark:chrome);
   const mirror=new THREE.Group();mirror.position.set(side*(W/2+.10),s.belt+.03,s.front-.36);mirror.rotation.y=side*.12;g.add(mirror);box(mirror,.17,.035,.15,-side*.05,-.08,0,dark);roundedBox(mirror,.28,.12,.22,.045,0,0,0,paint);box(mirror,.23,.065,.018,0,.003,-.12,glass);
-  for(const z of [-s.wheelbase/2,s.wheelbase/2]){const arch=mesh(g,new THREE.TorusGeometry(.485,.041,5,20,Math.PI),id==='cybertruck'||id==='ev3'?dark:paint,side*(W/2+.035),.46,z);arch.rotation.y=Math.PI/2;}
   box(g,.035,.08,L*.68,side*(W/2+.017),.45,0,dark);
  }
  if(id!=='cybertruck'){const zmid=(s.rearRoof+s.frontRoof)/2,len=s.frontRoof-s.rearRoof;const roofPanel=roundedBox(g,s.roofWidth*.77,len*.77,.018,.15,0,s.roof+.009,zmid,glass);roofPanel.rotation.x=-Math.PI/2;}
@@ -63,7 +62,7 @@ export function carModel(id){const v=VEHICLES.find(v=>v.id===id)||VEHICLES[0],s=
  if(id==='cybertruck'){box(g,W*.77,.047,1.14,0,s.belt+.006,-2.04,dark);for(let i=0;i<12;i++)box(g,W*.75,.012,.022,0,s.belt+.035,-2.57+i*.095,alloy);for(const side of [-1,1])box(g,.10,.16,1.3,side*W*.445,s.belt-.025,-2.01,paint);}
  else if(id==='ev6'||id==='ioniq5'||id==='ev3'){const spoiler=roundedBox(g,s.baseWidth*.98,.055,.23,.024,0,s.belt+.12,s.rear-.05,id==='ev6'?dark:paint);spoiler.rotation.x=-.05;}
  const wheels=[],pivots=[];
- for(const axle of [-1,1])for(const side of [-1,1]){const pivot=new THREE.Group();pivot.position.set(side*(W/2-.035),.46,axle*s.wheelbase/2);g.add(pivot);const wheel=new THREE.Group();pivot.add(wheel);
+ for(const axle of [-1,1])for(const side of [-1,1]){const pivot=new THREE.Group();pivot.position.set(side*(W/2-.115),.46,axle*s.wheelbase/2);g.add(pivot);const wheel=new THREE.Group();pivot.add(wheel);
   const tire=mesh(wheel,new THREE.CylinderGeometry(.435,.435,.265,32),rubber);tire.rotation.z=Math.PI/2;
   const outer=side*.145,hub=mesh(wheel,new THREE.CylinderGeometry(.328,.328,.025,32),dark,outer,0,0);hub.rotation.z=Math.PI/2;
   const ring=mesh(wheel,new THREE.TorusGeometry(.319,.026,6,32),alloy,outer+side*.013,0,0);ring.rotation.y=Math.PI/2;
