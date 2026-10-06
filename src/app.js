@@ -80,10 +80,10 @@ function updateHud(){const player=race.cars.find(c=>c.id===localId)||race.cars[0
  if(player.finish!==null&&!race.online&&!playerSaved)highlight(player);if(highlightUntil&&performance.now()>highlightUntil)$('finish-highlight').classList.add('hidden');if(race.done&&!race.online&&performance.now()>highlightUntil)showResult();
 }
 let last=performance.now(),hudAt=0,lastCount='';
-function frame(now){const dt=Math.min((now-last)/1000,.1);last=now;
+function frame(now){const elapsed=Math.min((now-last)/1000,.25),dt=Math.min(elapsed,.1);last=now;view.adaptPerformance(elapsed);
  if(screen==='race'&&race){if(!paused&&!race.done){const start=race.online?onlineStart:soloStart,remaining=(start-now)/1000;const count=remaining>1?String(Math.min(3,Math.ceil(remaining-1))):remaining>0?'GO!':'';$('countdown').textContent=count;if(count&&count!==lastCount){beep(count==='GO!'?900:450,.13);lastCount=count;}
    if(race.online){if(now-lastSend>=33&&remaining<=0){send({type:'input',keys:$('dialog').classList.contains('hidden')?inputs():{}});lastSend=now;}}
-   else if(remaining<=0){soloAccumulator+=dt*(qaDrive&&qa?8:1);while(soloAccumulator>=DT&&!race.done){stepRace(race,{[localId]:inputs()},DT);for(const e of race.events)if(e.id===localId&&['boost','item','pickup','block'].includes(e.type))beep(e.type==='boost'?180:650,.12,e.type==='boost'?'sawtooth':'sine');soloAccumulator-=DT;}}
+   else if(remaining<=0){soloAccumulator+=elapsed*(qaDrive&&qa?8:1);while(soloAccumulator>=DT&&!race.done){stepRace(race,{[localId]:inputs()},DT);for(const e of race.events)if(e.id===localId&&['boost','item','pickup','block'].includes(e.type))beep(e.type==='boost'?180:650,.12,e.type==='boost'?'sawtooth':'sine');soloAccumulator-=DT;}}
   }view.race(race,localId,dt,now/1000);if(now-hudAt>80){updateHud();hudAt=now;}}
  else{view.menu(selected,now/1000,screen==='select');if(screen==='select')selectionPreview.render(now/1000);if(gain)gain.gain.setTargetAtTime(0,audio.currentTime,.1);}
  requestAnimationFrame(frame);

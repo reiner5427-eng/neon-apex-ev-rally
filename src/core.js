@@ -1,13 +1,14 @@
 export const TRACK_ID = 'harbor-loop';
 export const LAPS = 3;
 export const DT = 1 / 60;
+export const DRIVING = Object.freeze({topSpeed:64,boostSpeed:92,magnetSpeed:82,acceleration:27,boostAcceleration:35,braking:45});
 export const VEHICLES = [
-  {id:'ev6',name:'기아 EV6',tag:'SPORT CROSSOVER',color:0x5be4d3,length:4.65,width:1.95,height:1.50},
-  {id:'cybertruck',name:'테슬라 사이버트럭',tag:'ANGULAR PICKUP',color:0xa9b8c6,length:5.55,width:2.16,height:1.88},
-  {id:'model-s',name:'테슬라 모델 S',tag:'GRAND TOURING',color:0xec5770,length:5.00,width:1.96,height:1.38},
-  {id:'model-y',name:'테슬라 모델 Y',tag:'CURVED SUV',color:0xdbe6ef,length:4.76,width:1.97,height:1.72},
+  {id:'ev6',name:'기아 EV6',tag:'FACELIFT CROSSOVER',color:0x5be4d3,length:4.695,width:1.880,height:1.550},
+  {id:'cybertruck',name:'테슬라 사이버트럭',tag:'ANGULAR PICKUP',color:0xa9b8c6,length:5.683,width:2.032,height:1.794},
+  {id:'model-s',name:'테슬라 모델 S',tag:'GRAND TOURING',color:0xec5770,length:5.021,width:1.987,height:1.430},
+  {id:'model-y',name:'테슬라 모델 Y',tag:'JUNIPER SUV',color:0xdbe6ef,length:4.790,width:1.920,height:1.624},
   {id:'ioniq5',name:'현대 아이오닉 5',tag:'PIXEL HATCHBACK',color:0xb6a3ec,length:4.64,width:1.90,height:1.61},
-  {id:'ev3',name:'기아 EV3',tag:'COMPACT SUV',color:0xf2ba54,length:4.30,width:1.85,height:1.78}
+  {id:'ev3',name:'기아 EV3',tag:'COMPACT SUV',color:0xf2ba54,length:4.300,width:1.850,height:1.560}
 ];
 export const ITEMS=['missile','water','banana','magnet','shield'];
 export const ITEM_LABELS={missile:'미사일',water:'물폭탄',banana:'바나나',magnet:'자석',shield:'실드'};
@@ -29,7 +30,7 @@ export function createCar(id,name,vehicle,slot=0,ai=false){const s=-8-Math.floor
 export function createRace(players,mode='speed'){return {mode,trackId:TRACK_ID,time:0,cars:players.map((p,i)=>createCar(p.id,p.name,p.vehicle,i,!!p.ai)),boxes:mode==='item'?Array.from({length:18},(_,i)=>({s:(i+.7)*track.length/18,cooldown:0,id:i})):[],entities:[],events:[],done:false,firstFinish:null};}
 export function rankCars(race){return [...race.cars].sort((a,b)=>{if(a.dnf!==b.dnf)return a.dnf?1:-1;if(a.finish!==null&&b.finish!==null)return a.finish-b.finish;if(a.finish!==null)return -1;if(b.finish!==null)return 1;return progress(b)-progress(a);});}
 export function progress(c){const gate=track.length/track.gates,last=(c.nextGate+track.gates-1)%track.gates,within=((c.s-last*gate)%track.length+track.length)%track.length;return c.lap*track.length+last*gate+Math.min(within,gate);}
-export function aiInput(c,race){const p=at(c.s+clamp(Math.abs(c.speed)*.7,10,30)),desired=Math.atan2(p.x-c.x,p.z-c.z),err=wrapAngle(desired-c.yaw),bend=Math.abs(wrapAngle(at(c.s+38).yaw-at(c.s+10).yaw)),limit=bend>.5?23:bend>.25?32:43;return {accelerate:c.speed<limit,brake:c.speed>limit+4,left:err>.025,right:err<-.025,analog:clamp(-err*1.8,-1,1),drift:Math.abs(err)>.20&&c.speed>19,boost:bend<.18&&c.boosts>0&&c.boost<=0,item:!!c.item&&((Math.floor(race.time*4)+c.aiSeed)%13===0),reset:false};}
+export function aiInput(c,race){const p=at(c.s+clamp(Math.abs(c.speed)*.6,12,38)),desired=Math.atan2(p.x-c.x,p.z-c.z),err=wrapAngle(desired-c.yaw),bend=Math.abs(wrapAngle(at(c.s+52).yaw-at(c.s+10).yaw)),limit=bend>.5?28:bend>.25?40:60;return {accelerate:c.speed<limit,brake:c.speed>limit+3,left:err>.025,right:err<-.025,analog:clamp(-err*1.8,-1,1),drift:Math.abs(err)>.20&&c.speed>23,boost:bend<.13&&Math.abs(err)<.12&&c.boosts>0&&c.boost<=0,item:!!c.item&&((Math.floor(race.time*4)+c.aiSeed)%13===0),reset:false};}
 export function resetCar(c,race){if(c.resetCooldown>0||c.finish!==null||c.dnf)return;const last=(c.nextGate+track.gates-1)%track.gates,p=at(last*track.length/track.gates+3);c.x=p.x;c.z=p.z;c.yaw=p.yaw;c.vx=c.vz=c.speed=0;c.s=(last*track.length/track.gates+3)%track.length;c.penalty+=3;c.resetCooldown=2;c.boost=0;race.events.push({type:'reset',id:c.id});}
 function target(c,race){return rankCars(race).filter(o=>o.id!==c.id&&!o.dnf&&o.finish===null&&progress(o)>progress(c)).sort((a,b)=>Math.hypot(a.x-c.x,a.z-c.z)-Math.hypot(b.x-c.x,b.z-c.z))[0];}
 export function getTarget(c,race){return target(c,race)?.id??null;}
@@ -42,8 +43,8 @@ export function stepRace(race,inputs={},dt=DT){if(race.done)return;race.events=[
     if(input.reset)resetCar(c,race);if(input.item)useItem(c,race);if(input.boost&&c.boosts>0&&c.boost===0&&c.stun===0){c.boosts--;c.boost=2.6;race.events.push({type:'boost',id:c.id});}
     const oldS=c.s;c.steer=typeof input.analog==='number'?clamp(input.analog,-1,1):(Number(!!input.right)-Number(!!input.left));
     const forwardX=Math.sin(c.yaw),forwardZ=Math.cos(c.yaw),moving=Math.hypot(c.vx,c.vz);
-    c.speed=c.vx*forwardX+c.vz*forwardZ;const max=c.boost>0?64:c.magnet>0?57:44;
-    const accel=(input.accelerate?19:0)+(c.boost>0?28:0)+(c.magnet>0?20:0)-(input.brake?(c.speed>1?30:12):0);
+    c.speed=c.vx*forwardX+c.vz*forwardZ;const max=c.boost>0?DRIVING.boostSpeed:c.magnet>0?DRIVING.magnetSpeed:DRIVING.topSpeed;
+    const accel=(input.accelerate?DRIVING.acceleration:0)+(c.boost>0?DRIVING.boostAcceleration:0)+(c.magnet>0?24:0)-(input.brake?(c.speed>1?DRIVING.braking:12):0);
     c.speed=clamp(c.speed+(c.stun>0?0:accel)*dt,-12,max);c.speed*=Math.exp(-(input.accelerate?.12:input.brake?.1:.70)*dt);
     if(c.stun>0)c.speed*=Math.exp(-3*dt);
     c.drifting=!!input.drift&&Math.abs(c.steer)>.15&&c.speed>17&&c.stun===0;
@@ -52,7 +53,10 @@ export function stepRace(race,inputs={},dt=DT){if(race.done)return;race.events=[
     // A positive right input must therefore decrease yaw.
     c.yaw=wrapAngle(c.yaw-c.steer*turn*dt*(c.stun>0?.28:1));
     if(c.magnet>0){const t=race.cars.find(o=>o.id===c.magnetTarget);if(t&&!t.dnf)c.yaw+=clamp(wrapAngle(Math.atan2(t.x-c.x,t.z-c.z)-c.yaw),-.8*dt,.8*dt);}
-    const blend=1-Math.exp(-(c.drifting?2.1:11)*dt),tx=Math.sin(c.yaw)*c.speed,tz=Math.cos(c.yaw)*c.speed;c.vx+=(tx-c.vx)*blend;c.vz+=(tz-c.vz)*blend;c.x+=c.vx*dt;c.z+=c.vz*dt;
+    // Apply longitudinal acceleration in full. Grip damps only lateral slip,
+    // otherwise the old vector lerp discarded most acceleration at 60 Hz.
+    const rightX=Math.cos(c.yaw),rightZ=-Math.sin(c.yaw),sideLimit=Math.abs(c.speed)*(c.drifting?.60:.24),sideSpeed=clamp((c.vx*rightX+c.vz*rightZ)*Math.exp(-(c.drifting?3.0:13)*dt),-sideLimit,sideLimit);
+    c.vx=Math.sin(c.yaw)*c.speed+rightX*sideSpeed;c.vz=Math.cos(c.yaw)*c.speed+rightZ*sideSpeed;c.x+=c.vx*dt;c.z+=c.vz*dt;
     c.slip=wrapAngle(c.yaw-Math.atan2(c.vx,c.vz));if(c.drifting&&moving>17&&Math.abs(c.slip)>.12){c.meter+=dt*clamp(Math.abs(c.slip),.12,.9)*50;if(c.meter>=100){if(c.boosts<2)c.boosts++;c.meter-=100;}}
     const near=nearest(c.x,c.z),edge=track.width/2-1.1;if(near.dist>edge){const k=edge/near.dist;c.x=near.x+(c.x-near.x)*k;c.z=near.z+(c.z-near.z)*k;const nx=(c.x-near.x)/edge,nz=(c.z-near.z)/edge,out=c.vx*nx+c.vz*nz;if(out>0){c.vx-=out*nx*1.45;c.vz-=out*nz*1.45;c.speed*=.72;}if(near.dist>12)race.events.push({type:'wall',id:c.id});}
     c.s=nearest(c.x,c.z).s;gates(c,oldS,race,dt);

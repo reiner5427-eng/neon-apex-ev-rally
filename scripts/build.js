@@ -2,6 +2,7 @@ import { mkdir, copyFile, cp, writeFile } from 'node:fs/promises';
 await mkdir('dist/vendor', { recursive: true });
 for (const file of ['index.html','style.css']) await copyFile(file, `dist/${file}`);
 await cp('src','dist/src',{recursive:true});
+await cp('assets','dist/assets',{recursive:true});
 await copyFile('node_modules/three/build/three.module.js','dist/vendor/three.module.js');
 await copyFile('node_modules/three/build/three.core.js','dist/vendor/three.core.js');
 const url=process.env.REALTIME_URL || '';
