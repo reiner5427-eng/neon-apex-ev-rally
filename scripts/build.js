@@ -1,0 +1,10 @@
+import { mkdir, copyFile, cp, writeFile } from 'node:fs/promises';
+await mkdir('dist/vendor', { recursive: true });
+for (const file of ['index.html','style.css']) await copyFile(file, `dist/${file}`);
+await cp('src','dist/src',{recursive:true});
+await copyFile('node_modules/three/build/three.module.js','dist/vendor/three.module.js');
+await copyFile('node_modules/three/build/three.core.js','dist/vendor/three.core.js');
+const url=process.env.REALTIME_URL || '';
+if(url && !/^https:\/\//.test(url)) throw new Error('Production REALTIME_URL must use https://');
+await writeFile('dist/config.js', `export const REALTIME_URL = ${JSON.stringify(url)};\n`);
+console.log('Static build complete; online endpoint:',url || 'same-site Netlify Functions');
