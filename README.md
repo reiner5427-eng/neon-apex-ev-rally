@@ -2,6 +2,11 @@
 
 HTML/CSS/JavaScript와 Three.js로 직접 만든 3D 전기차 레이싱 웹게임입니다. 기존 게임과 별도의 프로젝트입니다. 차량은 브랜드 공식 모델·에셋이 아닌 직접 제작한 스타일화된 메시입니다. 상표 소유자와 제휴 관계가 없습니다.
 
+- 게임 실행: https://neon-apex-ev-rally.netlify.app
+- 비공개 소스: https://github.com/reiner5427-eng/neon-apex-ev-rally
+
+차체 곡면, 별도 유리와 필러, 금속 휠·브레이크·타이어, 차종별 램프와 반사 재질을 적용했습니다. 추적 카메라 기준 좌우 방향키도 수정했습니다. 운영 서버 연결과 두 브라우저의 참가·출발·기권 결과는 확인했으나, HTTP 지연으로 운영 3랩 완주는 아직 확정 검증하지 못했습니다. 자세한 검증 범위는 `VERIFICATION.md`에 기록합니다.
+
 ## 실행
 
 Node.js 22 이상, pnpm 10.18.3을 사용합니다. `package.json`의 직접 의존성 버전을 고정하고 `pnpm-lock.yaml`을 포함합니다.
