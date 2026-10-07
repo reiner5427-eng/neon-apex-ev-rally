@@ -66,18 +66,19 @@ function cabinShell(g,v,s,paint){
  else if(v.id==='ev6'||v.id==='ev3'||v.id==='ioniq5'){const z=profile[1][0],c=sample(profile,z);box(g,c[2]*2+.11,.032,.22,0,c[1]+.012,z-.10,trim);}
 }
 function lamps(g,v,s){
- const W=v.width,end=v.length/2,front=end+.018,rear=-end-.019,fy=sample(s.body,end)[2],ry=sample(s.body,-end)[2];
+ const W=v.width,end=v.length/2,front=end+.009,rear=-end-.010,frontCap=sample(s.body,end),rearCap=sample(s.body,-end),fy=frontCap[2],ry=rearCap[2],FW=frontCap[1]*W-.04,RW=rearCap[1]*W-.04;
+ // Lamps sit on the end-cap plane, within its painted width and upper edge.
  roundedBox(g,W*.60,.085,.035,.025,0,s.bottom+.18,front,trim);roundedBox(g,W*.69,.13,.035,.025,0,s.bottom+.17,rear,trim);
  roundedBox(g,.43,.092,.023,.009,0,s.bottom+.34,front+.019,plate);roundedBox(g,.43,.092,.023,.009,0,s.bottom+.32,rear-.019,plate);
- if(v.id==='cybertruck'){box(g,W*.90,.033,.020,0,fy-.055,front,headlamp);box(g,W*.90,.033,.02,0,ry-.025,rear,taillamp);box(g,W*.95,.19,.07,0,s.bottom+.065,front,trim);box(g,W*.95,.17,.07,0,s.bottom+.065,rear,trim);return;}
- if(v.id==='model-y'){ribbon(g,[[-W*.44,fy+.065,front],[-W*.32,fy+.040,front+.014],[0,fy+.031,front+.032],[W*.32,fy+.040,front+.014],[W*.44,fy+.065,front]],.031,headlamp);ribbon(g,[[-W*.43,ry+.014,rear],[-W*.39,ry+.076,rear-.008],[0,ry+.080,rear-.019],[W*.39,ry+.076,rear-.008],[W*.43,ry+.014,rear]],.045,taillamp);
-  for(const side of [-1,1])roundedBox(g,.23,.105,.028,.020,side*W*.35,fy-.19,front,trim);return;}
- if(v.id==='ev3'){for(const side of [-1,1]){ribbon(g,[[side*W*.28,fy+.090,front],[side*W*.43,fy+.12,front-.012],[side*W*.44,fy-.20,front]],.034,headlamp);ribbon(g,[[side*W*.35,ry+.21,rear+.025],[side*W*.44,ry+.105,rear],[side*W*.425,ry-.205,rear]],.041,taillamp);roundedBox(g,.09,.30,.032,.018,side*W*.42,fy-.057,front-.010,trim);}return;}
- if(v.id==='ev6'){for(const side of [-1,1]){polygon(g,[[side*W*.23,fy+.01,front],[side*W*.44,fy+.135,front-.040],[side*W*.425,fy-.135,front-.019]],trim);ribbon(g,[[side*W*.24,fy+.023,front+.010],[side*W*.43,fy+.143,front-.025],[side*W*.41,fy-.125,front],[side*W*.31,fy-.065,front+.006]],.027,headlamp);}
-  ribbon(g,[[-W*.43,ry-.09,rear],[-W*.40,ry+.02,rear-.010],[-W*.32,ry+.155,rear-.02],[0,ry+.19,rear-.029],[W*.32,ry+.155,rear-.02],[W*.40,ry+.02,rear-.010],[W*.43,ry-.09,rear]],.039,taillamp);return;}
- if(v.id==='ioniq5'){for(const side of [-1,1]){box(g,.50,.14,.025,side*W*.32,fy+.027,front,trim);box(g,.50,.14,.025,side*W*.32,ry+.026,rear,trim);for(let i=0;i<4;i++)for(let j=0;j<2;j++){box(g,.086,.048,.035,side*(.39+i*.111),fy-.004+j*.062,front+.01,headlamp);box(g,.086,.048,.035,side*(.39+i*.111),ry-.004+j*.062,rear-.01,taillamp);}}return;}
+ if(v.id==='cybertruck'){box(g,FW*.90,.033,.020,0,fy-.055,front,headlamp);box(g,RW*.90,.033,.02,0,ry-.045,rear,taillamp);box(g,W*.95,.19,.07,0,s.bottom+.065,front,trim);box(g,W*.95,.17,.07,0,s.bottom+.065,rear,trim);return;}
+ if(v.id==='model-y'){ribbon(g,[[-FW*.44,fy-.041,front],[-FW*.32,fy-.062,front],[0,fy-.067,front],[FW*.32,fy-.062,front],[FW*.44,fy-.041,front]],.031,headlamp);ribbon(g,[[-RW*.43,ry-.135,rear],[-RW*.39,ry-.065,rear],[0,ry-.065,rear],[RW*.39,ry-.065,rear],[RW*.43,ry-.135,rear]],.045,taillamp);
+  for(const side of [-1,1])roundedBox(g,.23,.105,.028,.020,side*FW*.35,fy-.22,front,trim);return;}
+ if(v.id==='ev3'){for(const side of [-1,1]){ribbon(g,[[side*FW*.28,fy-.070,front],[side*FW*.43,fy-.041,front],[side*FW*.44,fy-.31,front]],.034,headlamp);ribbon(g,[[side*RW*.35,ry-.047,rear],[side*RW*.44,ry-.16,rear],[side*RW*.425,ry-.43,rear]],.041,taillamp);roundedBox(g,.09,.30,.032,.018,side*FW*.42,fy-.195,front-.004,trim);}return;}
+ if(v.id==='ev6'){for(const side of [-1,1]){polygon(g,[[side*FW*.23,fy-.145,front],[side*FW*.44,fy-.032,front],[side*FW*.425,fy-.315,front]],trim);ribbon(g,[[side*FW*.24,fy-.157,front+.002],[side*FW*.43,fy-.041,front+.002],[side*FW*.41,fy-.295,front+.002],[side*FW*.31,fy-.235,front+.002]],.027,headlamp);}
+  ribbon(g,[[-RW*.43,ry-.31,rear],[-RW*.40,ry-.20,rear],[-RW*.32,ry-.065,rear],[0,ry-.056,rear],[RW*.32,ry-.065,rear],[RW*.40,ry-.20,rear],[RW*.43,ry-.31,rear]],.039,taillamp);return;}
+ if(v.id==='ioniq5'){for(const side of [-1,1]){box(g,FW*.29,.14,.025,side*FW*.32,fy-.097,front,trim);box(g,RW*.29,.14,.025,side*RW*.32,ry-.097,rear,trim);for(let i=0;i<4;i++)for(let j=0;j<2;j++){box(g,.086,.048,.035,side*FW*(.255+i*.065),fy-.127+j*.060,front+.002,headlamp);box(g,.086,.048,.035,side*RW*(.255+i*.065),ry-.127+j*.060,rear-.002,taillamp);}}return;}
  // Model S has swept lamp pockets and a low bonnet.
- for(const side of [-1,1]){polygon(g,[[side*W*.24,fy+.025,front],[side*W*.46,fy+.10,front-.04],[side*W*.43,fy-.05,front-.012],[side*W*.30,fy-.07,front+.006]],trim);ribbon(g,[[side*W*.27,fy+.014,front+.019],[side*W*.43,fy+.081,front-.012],[side*W*.405,fy-.025,front+.009],[side*W*.31,fy-.040,front+.016]],.026,headlamp);roundedBox(g,W*.24,.095,.028,.03,side*W*.335,ry+.025,rear,taillamp);}
+ for(const side of [-1,1]){polygon(g,[[side*FW*.24,fy-.105,front],[side*FW*.45,fy-.02,front],[side*FW*.43,fy-.17,front],[side*FW*.30,fy-.19,front]],trim);ribbon(g,[[side*FW*.27,fy-.112,front+.002],[side*FW*.43,fy-.035,front+.002],[side*FW*.405,fy-.145,front+.002],[side*FW*.31,fy-.160,front+.002]],.026,headlamp);roundedBox(g,RW*.24,.095,.028,.03,side*RW*.335,ry-.077,rear,taillamp);}
 }
 function wheelModel(side,s){const wheel=new THREE.Group(),r=s.radius,width=s.angular?.31:.245;
  const tire=mesh(wheel,new THREE.CylinderGeometry(r,r,width,32),rubber);tire.rotation.z=Math.PI/2;
