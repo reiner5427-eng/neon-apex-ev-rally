@@ -102,6 +102,19 @@ export function carModel(id){
 }
 export class CarPreview{
  constructor(canvas){this.canvas=canvas;this.renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});this.renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.renderer.toneMapping=THREE.ACESFilmicToneMapping;this.renderer.toneMappingExposure=.98;this.scene=new THREE.Scene();this.scene.environment=studioEnvironment(this.renderer);this.scene.add(new THREE.HemisphereLight(0xe5f5ff,0x405466,1.7));const key=new THREE.DirectionalLight(0xfff2df,2.6);key.position.set(4,7,5);this.scene.add(key);const fill=new THREE.DirectionalLight(0x9fd2f0,1.6);fill.position.set(-5,3,-4);this.scene.add(fill);this.camera=new THREE.PerspectiveCamera(24,1,.1,100);this.camera.position.set(5.2,2.25,5.9);this.camera.lookAt(0,.83,0);this.setVehicle('ev6');}
- setVehicle(id){if(this.model){this.scene.remove(this.model);this.model.traverse(o=>o.geometry?.dispose());}this.model=carModel(id);this.scene.add(this.model);}
- render(time){const rect=this.canvas.getBoundingClientRect();if(rect.width<1||rect.height<1)return;const w=Math.round(rect.width),h=Math.round(rect.height);if(this.w!==w||this.h!==h){this.w=w;this.h=h;this.renderer.setSize(w,h,false);this.camera.aspect=w/h;this.camera.updateProjectionMatrix();}this.model.rotation.y=time*.12;this.renderer.render(this.scene,this.camera);}
+ setVehicle(id){if(this.model){this.scene.remove(this.model);this.model.traverse(o=>o.geometry?.dispose());}this.model=carModel(id);this.scene.add(this.model);this.fitCamera();}
+ fitCamera(){
+  const rect=this.canvas.getBoundingClientRect();if(rect.width<1||rect.height<1)return;
+  const {length,width,height}=this.model.userData.dimensions,aspect=rect.width/rect.height;
+  const direction=new THREE.Vector3(5.2,1.42,5.9).normalize(),elevation=Math.asin(direction.y);
+  // The horizontal cylinder encloses the complete turning car, mirrors and lamps.
+  // Fit its tangent against all four frustum planes so every rotation stays inside.
+  const radius=Math.hypot((length+.14)/2,(width+.42)/2),halfHeight=(height+.04)/2;
+  const vertical=THREE.MathUtils.degToRad(this.camera.fov/2),horizontal=Math.atan(Math.tan(vertical)*aspect);
+  const horizontalDistance=radius*Math.sqrt(1-(Math.sin(horizontal)*direction.y)**2)/Math.sin(horizontal)+halfHeight*direction.y;
+  const verticalDistance=Math.max(...[-1,1].map(sign=>{const angle=vertical+sign*elevation;return (radius*Math.abs(Math.sin(angle))+halfHeight*Math.abs(Math.cos(angle)))/Math.sin(vertical);}));
+  const distance=Math.max(7.99,horizontalDistance*1.08,verticalDistance*1.08),target=new THREE.Vector3(0,height/2,0);
+  this.camera.aspect=aspect;this.camera.position.copy(target).addScaledVector(direction,distance);this.camera.lookAt(target);this.camera.updateProjectionMatrix();
+ }
+ render(time){const rect=this.canvas.getBoundingClientRect();if(rect.width<1||rect.height<1)return;const w=Math.round(rect.width),h=Math.round(rect.height);if(this.w!==w||this.h!==h){this.w=w;this.h=h;this.renderer.setSize(w,h,false);this.fitCamera();}this.model.rotation.y=time*.12;this.renderer.render(this.scene,this.camera);}
 }
