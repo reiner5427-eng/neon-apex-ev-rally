@@ -1,7 +1,7 @@
 import * as THREE from '../vendor/three.module.js';
 import {View} from './scene.js';
 import {carModel,CarPreview,studioEnvironment} from './models.js';
-import {VEHICLES,track,at,DT,createRace,stepRace,rankCars,cleanName,ITEM_LABELS,getTarget,TRACK_ID,aiInput} from './core.js';
+import {VEHICLES,track,at,DT,createRace,stepRace,rankCars,cleanRegistrationName,ITEM_LABELS,getTarget,TRACK_ID,aiInput} from './core.js';
 import {TouchInput} from './input.js';
 import {readRecords,sortedRecords,saveSoloRecord} from './records.js';
 import {REALTIME_URL} from '../config.js';
@@ -42,7 +42,7 @@ function drawSelection(){view.setPreview(selected);selectionPreview.setVehicle(s
 document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{mode=b.dataset.mode;$('player-name').value=storage.getItem('apex-name')||'';$('name-error').textContent='';$('mode-tag').textContent=mode==='speed'?'SPEED RACE':mode==='item'?'ITEM RACE':'ONLINE 1:1';$('select-go').textContent=mode==='online'?'온라인 대기방 →':'레이스 시작 →';setScreen('select');drawSelection();});
 $('select-back').onclick=main;
 $('player-name').onkeydown=e=>{if(e.key==='Enter')$('select-go').click();};
-$('select-go').onclick=()=>{let name;try{name=cleanName($('player-name').value);}catch(e){$('name-error').textContent=e.message;$('player-name').focus();return;}$('player-name').value=name;storage.setItem('apex-name',name);storage.setItem('apex-vehicle',selected);if(mode==='online')onlineMenu();else startSolo(name);};
+$('select-go').onclick=()=>{let name;try{name=cleanRegistrationName($('player-name').value);}catch(e){$('name-error').textContent=e.message;$('player-name').focus();return;}$('player-name').value=name;storage.setItem('apex-name',name);storage.setItem('apex-vehicle',selected);if(mode==='online')onlineMenu();else startSolo(name);};
 function startSolo(name){localId='you';const players=[{id:localId,name,vehicle:selected},...VEHICLES.filter(v=>v.id!==selected).map((v,i)=>({id:`ai-${i}`,name:['LUNA','NOVA','KAI','RIO','ZERO'][i],vehicle:v.id,ai:true}))];race=createRace(players,mode);race.online=false;soloStart=performance.now()+4000;soloAccumulator=0;playerSaved=false;paused=false;highlightUntil=0;finishingResult=false;$('finish-highlight').classList.add('hidden');$('dialog').classList.add('hidden');setScreen('race');view.setRace(race);$('race-mode').textContent=`${mode==='speed'?'스피드전':'아이템전'} · HARBOR LOOP`;$('countdown').textContent='3';}
 function showHall(tab='speed'){const records=sortedRecords(readRecords(storage),tab);dialog('명예의 전당','HALL OF FAME',`<p>HARBOR LOOP · 가장 빠른 단일 랩 기준 상위 10개. 동률이면 총 완주 시간을 비교합니다.<br>혼자 하는 경기의 완주 기록만 현재 브라우저에 저장됩니다.</p><div class="tabs"><button data-hall="speed" class="${tab==='speed'?'active':''}">스피드전</button><button data-hall="item" class="${tab==='item'?'active':''}">아이템전</button></div><div class="table-scroll"><table><thead><tr><th>순위</th><th>레이서 / 차량</th><th>최고 랩</th><th>총 시간</th><th>날짜</th></tr></thead><tbody>${records.map((r,i)=>`<tr><td>${String(i+1).padStart(2,'0')}</td><td>${esc(r.name)}<small>${esc(vehicleName(r.vehicle))}</small></td><td>${fmt(r.bestLap)}</td><td>${fmt(r.total)}</td><td>${new Date(r.date).toLocaleDateString('ko-KR')}</td></tr>`).join('')||'<tr><td colspan="5">아직 완주 기록이 없습니다. 첫 레이스에 도전하세요.</td></tr>'}</tbody></table></div>`);document.querySelectorAll('[data-hall]').forEach(b=>b.onclick=()=>showHall(b.dataset.hall));}
 $('hall-button').onclick=()=>showHall();

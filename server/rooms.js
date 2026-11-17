@@ -1,5 +1,5 @@
 import {randomInt,randomUUID,randomBytes,createHash,timingSafeEqual} from 'node:crypto';
-import {createRace,stepRace,DT,VEHICLES,cleanName} from '../src/core.js';
+import {createRace,stepRace,DT,VEHICLES,cleanRegistrationName} from '../src/core.js';
 const hash=token=>createHash('sha256').update(String(token)).digest('hex');
 const validToken=(token,digest)=>{const a=Buffer.from(hash(token)),b=Buffer.from(digest||'');return a.length===b.length&&timingSafeEqual(a,b);};
 const publicRoom=r=>({type:'room',code:r.code,host:r.host,mode:r.mode,status:r.status,players:r.players.map(({id,name,vehicle,ready,connected})=>({id,name,vehicle,ready,connected}))});
@@ -24,14 +24,14 @@ export async function roomRequest(store,m,now=Date.now()){
  if(!m||typeof m!=='object')throw new Error('잘못된 요청입니다.');
  if(m.type==='health')return {ok:true,transport:'Netlify Functions + strong Blobs',serverNow:now};
  if(m.type==='create'){
-   const name=cleanName(m.name);if(!VEHICLES.some(v=>v.id===m.vehicle))throw new Error('차량을 선택하세요.');
+   const name=cleanRegistrationName(m.name);if(!VEHICLES.some(v=>v.id===m.vehicle))throw new Error('차량을 선택하세요.');
    for(let i=0;i<16;i++){const code=String(randomInt(0,1000000)).padStart(6,'0'),id=randomUUID(),token=randomBytes(32).toString('hex');const r={code,host:id,mode:m.mode==='item'?'item':'speed',status:'waiting',created:now,expires:now+1800000,players:[{id,name,vehicle:m.vehicle,ready:false,connected:true,seen:now,keys:{},inputAt:now,tokenHash:hash(token)}]};const result=await store.setJSON(`rooms/${code}`,r,{onlyIfNew:true,metadata:{expires:r.expires}});if(result.modified)return reply(r,now,{yourId:id,token,code});}throw new Error('방 생성에 실패했습니다. 다시 시도하세요.');
  }
  if(!/^\d{6}$/.test(String(m.code)))throw new Error('6자리 숫자 코드를 입력하세요.');const key=`rooms/${m.code}`;
  for(let retry=0;retry<8;retry++){
    const entry=await store.getWithMetadata(key,{type:'json',consistency:'strong'});if(!entry||entry.data.closed||entry.data.expires<now)throw new Error('존재하지 않거나 만료된 방입니다.');const r=entry.data;
    advance(r,now);let extra={};
-   if(m.type==='join'){if(r.status!=='waiting')throw new Error('이미 시작한 방입니다.');if(r.players.length>=2)throw new Error('방 정원이 가득 찼습니다.');const name=cleanName(m.name);if(!VEHICLES.some(v=>v.id===m.vehicle))throw new Error('차량을 선택하세요.');const id=randomUUID(),token=randomBytes(32).toString('hex');r.players.push({id,name,vehicle:m.vehicle,ready:false,connected:true,seen:now,keys:{},inputAt:now,tokenHash:hash(token)});extra={yourId:id,token,code:r.code};}
+   if(m.type==='join'){if(r.status!=='waiting')throw new Error('이미 시작한 방입니다.');if(r.players.length>=2)throw new Error('방 정원이 가득 찼습니다.');const name=cleanRegistrationName(m.name);if(!VEHICLES.some(v=>v.id===m.vehicle))throw new Error('차량을 선택하세요.');const id=randomUUID(),token=randomBytes(32).toString('hex');r.players.push({id,name,vehicle:m.vehicle,ready:false,connected:true,seen:now,keys:{},inputAt:now,tokenHash:hash(token)});extra={yourId:id,token,code:r.code};}
    else{
      const p=r.players.find(p=>p.id===m.id);if(!p||!validToken(m.token,p.tokenHash))throw new Error('참가자 인증에 실패했습니다. 방에 다시 입장하세요.');if(!p.connected&&m.type!=='leave')throw new Error('연결 시간이 초과되었습니다. 방에 다시 입장하세요.');
      p.seen=now;
