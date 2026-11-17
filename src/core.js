@@ -14,9 +14,21 @@ export const ITEMS=['missile','water','banana','magnet','shield'];
 export const ITEM_LABELS={missile:'미사일',water:'물폭탄',banana:'바나나',magnet:'자석',shield:'실드'};
 export const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 export const wrapAngle=a=>Math.atan2(Math.sin(a),Math.cos(a));
+function matchesRemovedNickname(name) {
+  return typeof name === 'string' && /노안|예일리언|에일리언|야르|왜|잼민|응우엔|응우옌|응우|장애|게이/u.test(name.normalize('NFKC').toLowerCase().replace(/[\s\p{Cf}\p{M}_-]/gu, '').normalize('NFKC'));
+}
+
+export function pruneStoredRecords(storage, key, nameField) {
+  const records = JSON.parse(storage.getItem(key) || '[]');
+  if (!Array.isArray(records)) return [];
+  const retained = records.filter(record => !matchesRemovedNickname(record?.[nameField]));
+  if (retained.length !== records.length) storage.setItem(key, JSON.stringify(retained));
+  return retained;
+}
+
 export function cleanRegistrationName(entered) {
   const name = cleanName(entered);
-  if (/세무냥이|리트냥이|편입냥이|충주냥이|7급냥이|한전냥이|작수냥이|엠딧냥이|관세냥이|감평냥이/u.test(name.normalize('NFKC').toLowerCase().replace(/[\s\p{Cf}\p{M}_-]/gu, '').normalize('NFKC'))) throw new Error('사용할 수 없는 닉네임입니다.');
+  if (/세무냥이|리트냥이|편입냥이|충주냥이|7급냥이|한전냥이|작수냥이|엠딧냥이|관세냥이|감평냥이|노안|예일리언|에일리언|야르|왜|잼민|응우엔|응우옌|응우|장애|게이/u.test(name.normalize('NFKC').toLowerCase().replace(/[\s\p{Cf}\p{M}_-]/gu, '').normalize('NFKC'))) throw new Error('사용할 수 없는 닉네임입니다.');
   return name;
 }
 
