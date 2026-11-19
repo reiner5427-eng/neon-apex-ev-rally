@@ -14,8 +14,12 @@ export const ITEMS=['missile','water','banana','magnet','shield'];
 export const ITEM_LABELS={missile:'미사일',water:'물폭탄',banana:'바나나',magnet:'자석',shield:'실드'};
 export const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 export const wrapAngle=a=>Math.atan2(Math.sin(a),Math.cos(a));
+function hasLatinNickname(name) {
+  return typeof name === 'string' && /(?=\p{L})\p{Script=Latin}/u.test(name.normalize('NFKC'));
+}
+
 function matchesRemovedNickname(name) {
-  return typeof name === 'string' && /노안|예일리언|에일리언|야르|왜|잼민|응우엔|응우옌|응우|장애|게이|사랑해|죽|니거|니그로|돼지|섹시|울트라|씹|몸무게|돼|당뇨|역류|불|주먹|스마트|안경|도둑|빡/u.test(name.normalize('NFKC').toLowerCase().replace(/[\s\p{Cf}\p{M}_-]/gu, '').normalize('NFKC'));
+  return typeof name === 'string' && (hasLatinNickname(name) || /노안|예일리언|에일리언|야르|왜|잼민|응우엔|응우옌|응우|장애|게이|사랑해|죽|니거|니그로|돼지|섹시|울트라|씹|몸무게|돼|당뇨|역류|불|주먹|스마트|안경|도둑|빡/u.test(name.normalize('NFKC').toLowerCase().replace(/[\s\p{Cf}\p{M}_-]/gu, '').normalize('NFKC')));
 }
 
 export function pruneStoredRecords(storage, key, nameField) {
@@ -28,6 +32,7 @@ export function pruneStoredRecords(storage, key, nameField) {
 
 export function cleanRegistrationName(entered) {
   const name = cleanName(entered);
+  if (hasLatinNickname(name)) throw new Error('영문자가 포함된 닉네임은 사용할 수 없습니다.');
   if (/세무냥이|리트냥이|편입냥이|충주냥이|7급냥이|한전냥이|작수냥이|엠딧냥이|관세냥이|감평냥이|노안|예일리언|에일리언|야르|왜|잼민|응우엔|응우옌|응우|장애|게이|사랑해|죽|니거|니그로|돼지|섹시|울트라|씹|몸무게|돼|당뇨|역류|불|주먹|스마트|안경|도둑|빡/u.test(name.normalize('NFKC').toLowerCase().replace(/[\s\p{Cf}\p{M}_-]/gu, '').normalize('NFKC'))) throw new Error('사용할 수 없는 닉네임입니다.');
   return name;
 }
